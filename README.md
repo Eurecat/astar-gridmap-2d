@@ -1,4 +1,4 @@
-# GridAstar
+# A* for 2D grids
 
 This is an implementation of the A* path planning algorithm, specifically tailored for
 2D rectangular grids.
@@ -8,11 +8,14 @@ It is inspired by other two open source implementations:
 - [hjweide/a-star](https://github.com/hjweide/a-star)
 - [daancode/a-star](https://github.com/daancode/a-star)
 
-Nevertheless __GridAstar__ is 20% faster than the former and few orders (3>) of magnitude
+Nevertheless __GridAstar__ is 20% faster than the former and few orders of magnitude (3+)
 faster than the latter.
 
-To achied this speed, this library used a fairly large amount of RAM to perform many
-operations in __O(1)__.
+You might also want to take a look to [astar-algorithm-cpp](https://github.com/justinhj/astar-algorithm-cpp),
+but this implementation is more generic and not specifically optimized for 2D gridmaps.
+
+To achied this speed, this library uses a fairly large amount of RAM to perform many
+operations in __O(1)__. Memory allocations are reduced to the very minimum.
 
 It requires between 10 and 18 bytes for each cell in the grid.
 
@@ -67,4 +70,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
 either express or implied. See the License for the specific language governing permissions
  and limitations under the License.
+ 
+ #  References
+ 
+ [Introduction to A*](https://www.redblobgames.com/pathfinding/a-star/introduction.html)
 
