@@ -34,16 +34,16 @@ is a free cell.
 
     // You don't need to use this image parser, you can use your own.   
     Image image;
-    ReadImageFromPGM("./data/maze_big.pgm", &image);
+    image.readFromPGM("./data/maze_big.pgm");
 
     AStar::PathFinder generator;
 
-    generator.setWorldData( image.width, 
-                            image.height, 
-                            image.data.data() );
+    generator.setWorldData( image.width(),
+                            image.height(),
+                            image.data() );
                 
-    AStar::Coord2D startPos (image.width/2, 0);
-    AStar::Coord2D targetPos(image.width/2, image.height/2 -1);  
+    AStar::Coord2D startPos (image.width()/2, 0);
+    AStar::Coord2D targetPos(image.width()/2, image.height()/2 -1);
                
     auto path = generator.findPath(startPos, targetPos);
 
