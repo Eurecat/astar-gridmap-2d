@@ -12,10 +12,10 @@ Nevertheless __GridAstar__ is 20% faster than the former and few orders of magni
 faster than the latter.
 
 You might also want to take a look to [astar-algorithm-cpp](https://github.com/justinhj/astar-algorithm-cpp),
-but this implementation is more generic and not specifically optimized for 2D gridmaps.
+but this implementation is more generic and it is not specifically optimized for 2D gridmaps.
 
 To achied this speed, this library uses a fairly large amount of RAM to perform many
-operations in __O(1)__. Memory allocations are reduced to the very minimum.
+operations in __O(1)__. The number of memory allocations is reduced to the very minimum.
 
 It requires between 10 and 18 bytes for each cell in the grid.
 
@@ -25,7 +25,7 @@ In other words, between 10 and 18 Mb of memory for a 1000x1000 gridmap.
 
 You must pass the image using the method __setWorldData()__.
 
-Note that the the image data must be arow-major and monochromatic.
+Note that the the image data must be row-major and monochromatic.
 
 A value of 0 (black) represents an obstacle, whilst 255 (white)
 is a free cell.
