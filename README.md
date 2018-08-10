@@ -44,4 +44,4 @@ In other words, between 10 and 18 Mb of memory for a 1000x1000 gridmap.
 
 ```
 
-![Huge map](./map_out_large.png)
+![Huge map](./map_out_big.png)
