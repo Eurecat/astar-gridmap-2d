@@ -192,8 +192,11 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
                 continue;
             }
 
-            float factor = 1.0f + static_cast<float>(EMPTY - newCell.world) / 50.0f;
-            float new_cost = currentCell.cost_G + (_direction_cost[i] * factor);
+            // Code temporary removed.
+            //float factor = 1.0f + static_cast<float>(EMPTY - newCell.world) / 50.0f;
+            //float new_cost = currentCell.cost_G + (_direction_cost[i] * factor);
+
+            float new_cost = currentCell.cost_G + _direction_cost[i];
 
             if( new_cost < newCell.cost_G)
             {
