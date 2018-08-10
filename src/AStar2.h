@@ -117,8 +117,8 @@ private:
     uint32_t _world_height;
     bool _allow_5x5_search;
 
-    std::array<Coord2D,24> _directions;
-    std::array<float,24>   _direction_cost;
+    std::array<Coord2D,24>  _directions;
+    std::array<uint32_t,24> _direction_cost;
 
     std::priority_queue<ScoreCoordPair, std::vector<ScoreCoordPair>, CompareScore> _open_set;
 
@@ -132,9 +132,9 @@ private:
 class Heuristic
 {
 public:
-    static float manhattan(Coord2D source_, Coord2D target_);
-    static float euclidean(Coord2D source_, Coord2D target_);
-    static float octagonal(Coord2D source_, Coord2D target_);
+    static uint32_t manhattan(Coord2D source_, Coord2D target_);
+    static uint32_t euclidean(Coord2D source_, Coord2D target_);
+    static uint32_t octagonal(Coord2D source_, Coord2D target_);
 };
 
 }

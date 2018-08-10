@@ -188,11 +188,11 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
             //float factor = 1.0f + static_cast<float>(EMPTY - newCell.world) / 50.0f;
             //float new_cost = currentCell.cost_G + (_direction_cost[i] * factor);
 
-            float new_cost = currentCell.cost_G + _direction_cost[i];
+            auto new_cost = currentCell.cost_G + _direction_cost[i];
 
             if( new_cost < newCell.cost_G)
             {
-                float H = _heuristic( newCoordinates, goalPos );
+                auto H = _heuristic( newCoordinates, goalPos );
                 _open_set.push( { new_cost + H, newCoordinates } );
                 newCell.cost_G = new_cost;
                 newCell.path_parent = currentCoord;
@@ -276,19 +276,19 @@ bool PathFinder::detectCollision(Coord2D coordinates)
 }
 
 
-float Heuristic::manhattan(Coord2D source, Coord2D target)
+uint32_t Heuristic::manhattan(Coord2D source, Coord2D target)
 {
     auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-    return static_cast<float>(10 * ( abs(delta.x) + abs(delta.y)));
+    return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
 }
 
-float Heuristic::euclidean(Coord2D source, Coord2D target)
+uint32_t Heuristic::euclidean(Coord2D source, Coord2D target)
 {
     auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-    return static_cast<float>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
+    return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
 }
 
-float Heuristic::octagonal(Coord2D source, Coord2D target)
+uint32_t Heuristic::octagonal(Coord2D source, Coord2D target)
 {
     auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
     return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
