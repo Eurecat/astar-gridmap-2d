@@ -1,3 +1,5 @@
+build-*
+
 # Prerequisites
 *.d
 
@@ -30,3 +32,4 @@
 *.exe
 *.out
 *.app
+/CMakeLists.txt.user
