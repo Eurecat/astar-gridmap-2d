@@ -41,6 +41,7 @@ PathFinder::PathFinder():
     _open_set( CompareScore() )
 {
     _allow_5x5_search = false;
+    _obstacle_threshold = 0;
     setHeuristic(&Heuristic::manhattan);
     _directions = {{
         { -1, -1 },  { 0, -1 }, { 1, -1 }, //0 - 2
@@ -72,8 +73,9 @@ PathFinder::~PathFinder()
 }
 
 
-void PathFinder::setWorldData(unsigned width, unsigned height, const uint8_t *data)
+void PathFinder::setWorldData(unsigned width, unsigned height, const uint8_t *data, uint8_t color_threshold)
 {
+    _obstacle_threshold = color_threshold;
     if( width >= std::numeric_limits<int16_t>::max() ||
         height >= std::numeric_limits<int16_t>::max() )
     {
@@ -86,17 +88,7 @@ void PathFinder::setWorldData(unsigned width, unsigned height, const uint8_t *da
 
     for (size_t i=0; i<width*height; i++ )
     {
-        if(  data[i] < 20 )
-        {
-            _gridmap[i].world = OBSTACLE;
-        }
-        if(  data[i] > 235 )
-        {
-            _gridmap[i].world = EMPTY;
-        }
-        else{
-            _gridmap[i].world = data[i];
-        }
+        _gridmap[i].world = data[i];
     }
 }
 
@@ -278,12 +270,9 @@ void PathFinder::exportPPM(const char *filename, CoordinateList* path)
 
 bool PathFinder::detectCollision(Coord2D coordinates)
 {
-    if (coordinates.x < 0 || coordinates.x >= _world_width ||
+    return (coordinates.x < 0 || coordinates.x >= _world_width ||
             coordinates.y < 0 || coordinates.y >= _world_height ||
-            cell(coordinates).world == OBSTACLE ){
-        return true;
-    }
-    return false;
+            cell(coordinates).world <= _obstacle_threshold );
 }
 
 

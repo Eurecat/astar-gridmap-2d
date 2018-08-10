@@ -58,8 +58,16 @@ public:
     PathFinder();
     ~PathFinder();
 
-    /// Row-major ordered map, where an obstacle is represented as a pixel with value 0 (black)
-    void setWorldData(unsigned width, unsigned height, const uint8_t *data);
+    ///
+    /**
+     * @brief setWorldData to be called at least once before findPath
+     *
+     * @param width            width of the image
+     * @param height           height of the image
+     * @param data             Row-major ordered map, where an obstacle is represented as a pixel with value 0 (black)
+     * @param color_threshold  threshold used to detect if a grey pixel is an obstacle
+     */
+    void setWorldData(unsigned width, unsigned height, const uint8_t *data, uint8_t color_threshold = 20);
 
     /// Default value is Heuristic::manhattan
     void setHeuristic(HeuristicFunction heuristic_);
@@ -82,6 +90,8 @@ public:
         OBSTACLE = 0,
         EMPTY    = 255
     };
+
+    uint8_t _obstacle_threshold;
 
     struct Cell{
         uint8_t  world;
