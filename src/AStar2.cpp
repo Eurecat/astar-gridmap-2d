@@ -286,27 +286,22 @@ bool PathFinder::detectCollision(Coord2D coordinates)
     return false;
 }
 
-Coord2D Heuristic::getDelta(Coord2D source, Coord2D target)
-{
-    return Coord2D( (source.x - target.x), (source.y - target.y) );
-}
 
 float Heuristic::manhattan(Coord2D source, Coord2D target)
 {
-
-    auto delta = getDelta(source, target);
+    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
     return static_cast<float>(10 * ( abs(delta.x) + abs(delta.y)));
 }
 
 float Heuristic::euclidean(Coord2D source, Coord2D target)
 {
-    auto delta = getDelta(source, target);
+    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
     return static_cast<float>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
 }
 
 float Heuristic::octagonal(Coord2D source, Coord2D target)
 {
-    auto delta = getDelta(source, target);
+    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
     return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
 }
 

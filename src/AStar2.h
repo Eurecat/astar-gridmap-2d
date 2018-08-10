@@ -27,7 +27,7 @@ namespace AStar
 
 struct Coord2D
 {
-    int x, y;
+    int16_t x, y;
     Coord2D(): x(-1), y(-1) {}
     Coord2D(int x_, int y_): x(x_), y(y_) {}
     bool operator == (const Coord2D& other) const;
@@ -121,8 +121,6 @@ private:
 
 class Heuristic
 {
-    static Coord2D getDelta(Coord2D source_, Coord2D target_);
-
 public:
     static float manhattan(Coord2D source_, Coord2D target_);
     static float euclidean(Coord2D source_, Coord2D target_);
