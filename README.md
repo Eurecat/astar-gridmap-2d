@@ -8,18 +8,17 @@ It is inspired by other two open source implementations:
 - [hjweide/a-star](https://github.com/hjweide/a-star)
 - [daancode/a-star](https://github.com/daancode/a-star)
 
-Nevertheless __GridAstar__ is 20% faster than the former and few orders of magnitude (3+)
+Nevertheless, this implementation is 20% faster than the former and few orders of magnitude (3+)
 faster than the latter.
 
 You might also want to take a look to [astar-algorithm-cpp](https://github.com/justinhj/astar-algorithm-cpp),
 but this implementation is more generic and it is not specifically optimized for 2D gridmaps.
 
-To achied this speed, this library uses a fairly large amount of RAM to perform many
+To achieve this speed, the library uses a fairly large amount of RAM to perform many
 operations in __O(1)__. The number of memory allocations is reduced to the very minimum.
 
-It requires between 10 and 18 bytes for each cell in the grid.
-
-In other words, between 10 and 18 Mb of memory for a 1000x1000 gridmap.
+It requires __at least__ 10 bytes for each cell in the grid, in other words,
+more than 10 Mb of memory for a 1000x1000 gridmap.
 
 ## Usage 
 
@@ -49,8 +48,8 @@ is a free cell.
 
 ```
 
-In the followin example, the algorithm required about 250 milliseconds
-to find the solution in a 1586x1586 maze.
+In the following example, the algorithm required about 200 milliseconds and 25 Mb
+of RAM to find the solution in a 1586x1586 maze.
 
 The pink pixels represent the cells of the grid visited by the algorithm.
 
@@ -71,7 +70,7 @@ License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF 
 either express or implied. See the License for the specific language governing permissions
  and limitations under the License.
  
- #  References
+ # References
  
  [Introduction to A*](https://www.redblobgames.com/pathfinding/a-star/introduction.html)
 
