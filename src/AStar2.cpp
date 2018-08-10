@@ -301,7 +301,7 @@ float Heuristic::euclidean(Coord2D source, Coord2D target)
 
 float Heuristic::octagonal(Coord2D source, Coord2D target)
 {
-    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
+    auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
     return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
 }
 
