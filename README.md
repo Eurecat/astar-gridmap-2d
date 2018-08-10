@@ -20,14 +20,16 @@ In other words, between 10 and 18 Mb of memory for a 1000x1000 gridmap.
 
 ## Usage 
 
+You must pass the image using the method __setWorldData()__.
+
+Note that the the image data must be arow-major and monochromatic.
+
+A value of 0 (black) represents an obstacle, whilst 255 (white)
+is a free cell.
+
 ```c++
 
-    // You don't need to use this image parser, you can use your own.
-    // But remember that setWorldData() requires an array where the
-    // stored image is row-major and monochromatic.
-    // A value of 0 (black) represents an obstacle, whilst 255 (white)
-    // a free cell.
-    
+    // You don't need to use this image parser, you can use your own.   
     Image image;
     ReadImageFromPGM("./data/maze_big.pgm", &image);
 
@@ -37,11 +39,32 @@ In other words, between 10 and 18 Mb of memory for a 1000x1000 gridmap.
                             image.height, 
                             image.data.data() );
                 
-    AStar::Coord2D startPos(1,1);
-    AStar::Coord2D targetPos(image.width-3, image.height-3);  
+    AStar::Coord2D startPos (image.width/2, 0);
+    AStar::Coord2D targetPos(image.width/2, image.height/2 -1);  
                
     auto path = generator.findPath(startPos, targetPos);
 
 ```
 
-![Huge map](./map_out_big.png)
+In the followin example, the algorithm required about 250 milliseconds
+to find the solution in a 1586x1586 maze.
+
+The pink pixels represent the cells of the grid visited by the algorithm.
+
+![Large map](./map_out_big.png)
+
+
+# License
+
+Copyright 2018 Eurecat
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file 
+except in compliance with the License. You may obtain a copy of the License at
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software distributed under the 
+License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
+either express or implied. See the License for the specific language governing permissions
+ and limitations under the License.
+
