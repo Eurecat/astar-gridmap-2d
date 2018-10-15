@@ -9,9 +9,8 @@ static void BM_AStar_Smooth_1000(benchmark::State& state)
 {
     AStar::PathFinder generator;
     Image image;
-    image.readFromPGM("../data/maze_1000_smooth.pgm");
+    image.readFromPGM("./data/maze_1000_smooth.pgm");
     generator.setWorldData( image.width(), image.height(), image.data() );
-    generator.allow5by5(false);
 
     AStar::CoordinateList result;
     for (auto _ : state)
@@ -28,9 +27,8 @@ static void BM_AStar_Big(benchmark::State& state)
 {
     AStar::PathFinder generator;
     Image image;
-    image.readFromPGM("../data/maze_large.pgm");
+    image.readFromPGM("./data/maze_large.pgm");
     generator.setWorldData( image.width(), image.height(), image.data() );
-    generator.allow5by5(false);
 
     AStar::CoordinateList result;
     for (auto _ : state)
@@ -46,9 +44,8 @@ static void BM_AStar_Small(benchmark::State& state)
 {
     AStar::PathFinder generator;
     Image image;
-    image.readFromPGM("../data/maze_250.pgm");
+    image.readFromPGM("./data/maze_250.pgm");
     generator.setWorldData( image.width(), image.height(), image.data() );
-    generator.allow5by5(false);
 
     AStar::CoordinateList result;
     for (auto _ : state)
@@ -71,15 +68,15 @@ BENCHMARK_MAIN();
 //{
 //    AStar::PathFinder generator;
 //    Image image;
-//    ReadImageFromPGM("../data/maze_large.pgm", &image);
-//    generator.setWorldData( image.width, image.height, image.data.data() );
+//    image.readFromPGM("./data/maze_large.pgm");
+//    generator.setWorldData( image.width(), image.height(), image.data() );
 //    generator.allow5by5(false);
 
 //    AStar::CoordinateList result;
 
 //    result = generator.findPath(
-//        { image.width/2, 0 },
-//        { image.width/2, image.height -1 } );
+//        { 1, 1 },
+//        { image.width()-1, image.height() -3 } );
 
 //    generator.exportPPM("map_out_large.ppm", &result );
 

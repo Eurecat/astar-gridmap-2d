@@ -40,31 +40,19 @@ Coord2D operator + (const Coord2D& left_, const Coord2D& right_)
 PathFinder::PathFinder():
     _open_set( CompareScore() )
 {
-    _allow_5x5_search = false;
+
     _obstacle_threshold = 0;
     setHeuristic(&Heuristic::manhattan);
     _directions = {{
         { -1, -1 },  { 0, -1 }, { 1, -1 }, //0 - 2
         { -1,  0 },             { 1,  0 }, //3 - 4
-        { -1,  1 },  { 0, 1 },  { 1,  1 }, //5 - 7
-
-        { -2, -2 }, { -1, -2 }, { 0, -2 }, { 1, -2 }, { 2, -2 }, //8 - 12
-        { -2, -1 },                                   { 2, -1 }, //13 - 15
-        { -2,  0 },                                   { 2,  0 }, //16 - 17
-        { -2,  1 },                                   { 2,  1 }, //18 - 19
-        { -2,  2 }, { -1,  2 }, { 0,  2 }, { 1,  2 }, { 2,  2 }  //20 - 23
+        { -1,  1 },  { 0, 1 },  { 1,  1 } //5 - 7
     }};
 
     _direction_cost = {{
         14, 10, 14,
         10,     10,
-        14, 10, 14,
-
-        27, 22, 19, 22, 27,
-        22,             22,
-        19,             19,
-        22,             22,
-        27, 22, 19, 22, 27
+        14, 10, 14
     }};
 }
 
@@ -140,37 +128,18 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
         Cell& currentCell = _gridmap[ currentIndex ];
         currentCell.already_visited = true;
 
-        std::array<bool,24> mask;
-        std::array<Coord2D,24> newDirections;
+        std::array<bool,8> mask;
+        std::array<Coord2D,8> newDirections;
         mask.fill(true);
 
-        const int max_index = (_allow_5x5_search ? 24:8);
 
-        for (int i=0; i<max_index ; i++)
+        for (int i=0; i < newDirections.size() ; i++)
         {
             newDirections[i] = currentCoord + _directions[i];
-        }
-
-        for (int i=0; i<8; i++)
-        {
             mask[i] =  detectCollision( newDirections[i] );
         }
-        if( _allow_5x5_search )
-        {
-            mask[9]  = mask[0] || mask[1]  || detectCollision( newDirections[9] );
-            mask[11] = mask[1] || mask[2] || detectCollision( newDirections[11] );
 
-            mask[13] = mask[0] || mask[3] || detectCollision( newDirections[13] );
-            mask[14] = mask[2] || mask[4] || detectCollision( newDirections[14] );
-
-            mask[17] = mask[3] || mask[5] || detectCollision( newDirections[17] );
-            mask[18] = mask[4] || mask[7] || detectCollision( newDirections[18] );
-
-            mask[20] = mask[5] || mask[6]  || detectCollision( newDirections[20] );
-            mask[22] = mask[6] || mask[7] || detectCollision( newDirections[22] );
-        }
-
-        for (int i = 0; i < max_index; ++i)
+        for (int i = 0; i < newDirections.size(); ++i)
         {
             if (mask[i]) {
                 continue;
@@ -265,33 +234,6 @@ void PathFinder::exportPPM(const char *filename, CoordinateList* path)
 
     outfile.write( reinterpret_cast<char*>(image.data()), image.size() );
     outfile.close();
-}
-
-
-bool PathFinder::detectCollision(Coord2D coordinates)
-{
-    return (coordinates.x < 0 || coordinates.x >= _world_width ||
-            coordinates.y < 0 || coordinates.y >= _world_height ||
-            cell(coordinates).world <= _obstacle_threshold );
-}
-
-
-uint32_t Heuristic::manhattan(Coord2D source, Coord2D target)
-{
-    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-    return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
-}
-
-uint32_t Heuristic::euclidean(Coord2D source, Coord2D target)
-{
-    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-    return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
-}
-
-uint32_t Heuristic::octagonal(Coord2D source, Coord2D target)
-{
-    auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
-    return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
 }
 
 }

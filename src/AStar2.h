@@ -21,6 +21,7 @@ either express or implied. See the License for the specific language governing p
 #include <map>
 #include <unordered_map>
 #include <queue>
+#include <algorithm>
 
 namespace AStar
 {
@@ -76,13 +77,6 @@ public:
     CoordinateList findPath(Coord2D source_, Coord2D target_);
 
 
-    /// If false, it looks at the neighbours ina 3x3 area arounf the current position.
-    /// If false, a 5x5 search area is used instead.
-    void allow5by5(bool allow)
-    {
-        _allow_5x5_search = allow;
-    }
-
     /// Export the resulting solution in a visual way. Useful for debugging.
     void exportPPM(const char* filename, CoordinateList* path);
 
@@ -115,10 +109,9 @@ private:
     HeuristicFunction _heuristic;
     uint32_t _world_width;
     uint32_t _world_height;
-    bool _allow_5x5_search;
 
-    std::array<Coord2D,24>  _directions;
-    std::array<uint32_t,24> _direction_cost;
+    std::array<Coord2D,8>  _directions;
+    std::array<uint32_t,8> _direction_cost;
 
     std::priority_queue<ScoreCoordPair, std::vector<ScoreCoordPair>, CompareScore> _open_set;
 
@@ -136,6 +129,35 @@ public:
     static uint32_t euclidean(Coord2D source_, Coord2D target_);
     static uint32_t octagonal(Coord2D source_, Coord2D target_);
 };
+
+
+
+inline bool PathFinder::detectCollision(Coord2D coordinates)
+{
+    return (coordinates.x < 0 || coordinates.x >= _world_width ||
+            coordinates.y < 0 || coordinates.y >= _world_height ||
+            cell(coordinates).world <= _obstacle_threshold );
+}
+
+
+inline uint32_t Heuristic::manhattan(Coord2D source, Coord2D target)
+{
+    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
+    return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
+}
+
+inline uint32_t Heuristic::euclidean(Coord2D source, Coord2D target)
+{
+    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
+    return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
+}
+
+inline uint32_t Heuristic::octagonal(Coord2D source, Coord2D target)
+{
+    auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
+    return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
+}
+
 
 }
 
