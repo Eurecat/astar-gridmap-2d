@@ -128,18 +128,15 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
         Cell& currentCell = _gridmap[ currentIndex ];
         currentCell.already_visited = true;
 
-        std::array<Coord2D,8> newDirections;
-
-        for (int i = 0; i < newDirections.size(); ++i)
+        for (int i = 0; i < 8; ++i)
         {
-            newDirections[i] = currentCoord + _directions[i];
+            const Coord2D newCoordinates = currentCoord + _directions[i];
 
-            if (detectCollision( newDirections[i] )) {
+            if (detectCollision( newCoordinates )) {
                 continue;
             }
 
-            Coord2D newCoordinates(newDirections[i]);
-            size_t newIndex = toIndex(newCoordinates);
+            const size_t newIndex = toIndex(newCoordinates);
             Cell& newCell = _gridmap[newIndex];
 
             if ( newCell.already_visited ) {
@@ -150,7 +147,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
             //float factor = 1.0f + static_cast<float>(EMPTY - newCell.world) / 50.0f;
             //float new_cost = currentCell.cost_G + (_direction_cost[i] * factor);
 
-            auto new_cost = currentCell.cost_G + _direction_cost[i];
+            const float new_cost = currentCell.cost_G + _direction_cost[i];
 
             if( new_cost < newCell.cost_G)
             {
