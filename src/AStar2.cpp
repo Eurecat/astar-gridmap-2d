@@ -168,6 +168,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
             path.push_back( coord );
             coord = cell(coord).path_parent;
         }
+        path.push_back(startPos);
     }
     else
     {
