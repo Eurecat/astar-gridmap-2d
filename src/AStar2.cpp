@@ -112,6 +112,11 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 
     _open_set.push( {0, startPos } );
     _gridmap[startIndex].cost_G = 0.0;
+ 
+    if( detectCollision( startPos ) )
+    {
+       return {};
+    }
 
     bool solution_found = false;
 
