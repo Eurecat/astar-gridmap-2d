@@ -61,25 +61,6 @@ PathFinder::~PathFinder()
 }
 
 
-void PathFinder::setWorldData(unsigned width, unsigned height, const uint8_t *data, uint8_t color_threshold)
-{
-    _obstacle_threshold = color_threshold;
-    if( width >= std::numeric_limits<int16_t>::max() ||
-        height >= std::numeric_limits<int16_t>::max() )
-    {
-        throw std::invalid_argument("Either width or height exceed the maximum size allowed (32768) ");
-    }
-
-    _world_width  = width;
-    _world_height = height;
-    _gridmap.resize(width*height);
-
-    for (size_t i=0; i<width*height; i++ )
-    {
-        _gridmap[i].world = data[i];
-    }
-}
-
 void PathFinder::setHeuristic(HeuristicFunction heuristic_)
 {
     _heuristic = std::bind(heuristic_, _1, _2);
@@ -101,12 +82,25 @@ void PathFinder::clean()
 }
 
 
-CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
+CoordinateList PathFinder::findPath(const Matrix& gridmap, Coord2D startPos, Coord2D goalPos)
 {
-    clean();
+    _world_width  = gridmap.cols();
+    _world_height = gridmap.rows();
+    _gridmap.resize(_world_height*_world_height);
 
-    auto toIndex = [this](Coord2D pos) -> int
-    { return static_cast<int>(_world_width*pos.y + pos.x); };
+    if( _world_width  >= std::numeric_limits<int16_t>::max() ||
+        _world_height >= std::numeric_limits<int16_t>::max() )
+    {
+        throw std::invalid_argument("Either width or height exceed the maximum size allowed (32768) ");
+    }
+
+    for (size_t i=0; i < gridmap.size(); i++ )
+    {
+        _gridmap[i].world = gridmap(i);
+    }
+
+    //---------------------------------
+    clean();
 
     const int startIndex = toIndex(startPos);
 
@@ -194,27 +188,24 @@ void PathFinder::exportPPM(const char *filename, CoordinateList* path)
 
     std::vector<uint8_t> image( _world_width * _world_height * 3);
 
-    int line_size = _world_width * 3;
-
-    auto toIndex = [line_size](int x, int y) { return y*line_size + (x*3); };
-
     for (uint32_t y=0; y<_world_height; y++)
     {
         for (uint32_t x=0; x<_world_width; x++)
         {
+            int index = toIndex( Coord2D(x,y) );
             if( cell( Coord2D(x,y) ).world == OBSTACLE )
             {
                 uint8_t color[] = {0,0,0};
-                mempcpy( &image[ toIndex(x,y) ], color, 3 );
+                mempcpy( &image[ index ], color, 3 );
             }
-            else if( _gridmap[ y*_world_width + x ].already_visited )
+            else if( _gridmap[ index ].already_visited )
             {
                 uint8_t color[] = {255,222,222};
-                mempcpy( &image[ toIndex(x,y) ], color, 3 );
+                mempcpy( &image[ index ], color, 3 );
             }
             else{
                 uint8_t color[] = {255,255,255};
-                mempcpy( &image[ toIndex(x,y) ], color, 3 );
+                mempcpy( &image[ index ], color, 3 );
             }
         }
     }
@@ -224,7 +215,7 @@ void PathFinder::exportPPM(const char *filename, CoordinateList* path)
         for (const auto& point: *path)
         {
             uint8_t color[] = {50,50,250};
-            mempcpy( &image[ toIndex(point.x, point.y) ], color, 3 );
+            mempcpy( &image[ toIndex(Coord2D(point.x, point.y)) ], color, 3 );
         }
     }
 

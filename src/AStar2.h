@@ -22,9 +22,12 @@ either express or implied. See the License for the specific language governing p
 #include <unordered_map>
 #include <queue>
 #include <algorithm>
+#include <eigen3/Eigen/Eigen>
 
 namespace AStar
 {
+
+typedef Eigen::Matrix<uint8_t, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 
 struct Coord2D
 {
@@ -38,7 +41,6 @@ struct Coord2D
 
 using HeuristicFunction = std::function<uint32_t(Coord2D, Coord2D)>;
 using CoordinateList = std::vector<Coord2D>;
-
 
 typedef std::pair<uint32_t,Coord2D> ScoreCoordPair;
 
@@ -59,22 +61,11 @@ public:
     PathFinder();
     ~PathFinder();
 
-    ///
-    /**
-     * @brief setWorldData to be called at least once before findPath
-     *
-     * @param width            width of the image
-     * @param height           height of the image
-     * @param data             Row-major ordered map, where an obstacle is represented as a pixel with value 0 (black)
-     * @param color_threshold  threshold used to detect if a grey pixel is an obstacle
-     */
-    void setWorldData(unsigned width, unsigned height, const uint8_t *data, uint8_t color_threshold = 20);
-
     /// Default value is Heuristic::manhattan
     void setHeuristic(HeuristicFunction heuristic_);
 
     /// Function that performs the actual A* computation.
-    CoordinateList findPath(Coord2D source_, Coord2D target_);
+    CoordinateList findPath(const Matrix& grid_map, Coord2D source_, Coord2D target_);
 
 
     /// Export the resulting solution in a visual way. Useful for debugging.
@@ -94,14 +85,20 @@ public:
         float    cost_G;
     };
 
-    const Cell& cell(Coord2D coordinates_) const
+    int toIndex(const Coord2D& pos) const
     {
-        return _gridmap[coordinates_.y*_world_width + coordinates_.x];
+        // column major
+        return static_cast<int>(_world_height*pos.x + pos.y);
     }
 
-    Cell& cell(Coord2D coordinates_)
+    const Cell& cell(const Coord2D& coord) const
     {
-        return _gridmap[coordinates_.y*_world_width + coordinates_.x];
+        return _gridmap[ toIndex(coord) ];
+    }
+
+    Cell& cell(const Coord2D& coord)
+    {
+        return _gridmap[ toIndex(coord) ];
     }
 
 private:

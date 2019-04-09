@@ -13,6 +13,7 @@ add_library(gridastar STATIC
     )
 
 find_package(benchmark)
+find_package(Eigen3 REQUIRED)
 
 message("Google Benchmark found")
 
