@@ -205,16 +205,16 @@ void PathFinder::exportPPM(const char *filename, CoordinateList* path)
             if( cell( Coord2D(x,y) ).world == OBSTACLE )
             {
                 uint8_t color[] = {0,0,0};
-                mempcpy( &image[ toIndex(x,y) ], color, 3 );
+                std::memcpy( &image[ toIndex(x,y) ], color, 3 );
             }
             else if( _gridmap[ y*_world_width + x ].already_visited )
             {
                 uint8_t color[] = {255,222,222};
-                mempcpy( &image[ toIndex(x,y) ], color, 3 );
+                std::memcpy( &image[ toIndex(x,y) ], color, 3 );
             }
             else{
                 uint8_t color[] = {255,255,255};
-                mempcpy( &image[ toIndex(x,y) ], color, 3 );
+                std::memcpy( &image[ toIndex(x,y) ], color, 3 );
             }
         }
     }
@@ -224,7 +224,7 @@ void PathFinder::exportPPM(const char *filename, CoordinateList* path)
         for (const auto& point: *path)
         {
             uint8_t color[] = {50,50,250};
-            mempcpy( &image[ toIndex(point.x, point.y) ], color, 3 );
+            std::memcpy( &image[ toIndex(point.x, point.y) ], color, 3 );
         }
     }
 

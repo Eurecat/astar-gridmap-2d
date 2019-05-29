@@ -15,7 +15,7 @@ either express or implied. See the License for the specific language governing p
 #ifndef _ASTAR2_Taffete_eurecat_
 #define _ASTAR2_Taffete_eurecat_
 
-#include <vector>
+#include <array>
 #include <functional>
 #include <set>
 #include <map>
