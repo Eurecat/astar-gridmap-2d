@@ -80,7 +80,7 @@ void PathFinder::setWorldData(unsigned width, unsigned height, const uint8_t *da
     {
         size_t data_idx = row*bytes_per_line, grid_idx = row*width;
         
-        for (size_t col=0; col<width*height; col++, data_idx++, grid_idx++ )
+        for (size_t col=0; col<width; col++, data_idx++, grid_idx++ )
         {
             _gridmap[grid_idx].world = data[data_idx];
         }
