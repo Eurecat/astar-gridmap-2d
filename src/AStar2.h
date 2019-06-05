@@ -66,9 +66,10 @@ public:
      * @param width            width of the image
      * @param height           height of the image
      * @param data             Row-major ordered map, where an obstacle is represented as a pixel with value 0 (black)
+     * @param bytes_per_line   Number of bytes per line (for padded data, eg. images). Default means image is not padded
      * @param color_threshold  threshold used to detect if a grey pixel is an obstacle
      */
-    void setWorldData(unsigned width, unsigned height, const uint8_t *data, uint8_t color_threshold = 20);
+    void setWorldData(unsigned width, unsigned height, const uint8_t *data, size_t bytes_per_line=0, uint8_t color_threshold = 20);
 
     /// Default value is Heuristic::manhattan
     void setHeuristic(HeuristicFunction heuristic_);
