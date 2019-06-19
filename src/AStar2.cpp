@@ -63,28 +63,18 @@ PathFinder::~PathFinder()
 
 void PathFinder::setWorldData(unsigned width, unsigned height, const uint8_t *data, size_t bytes_per_line, uint8_t color_threshold)
 {
-    _obstacle_threshold = color_threshold;
     if( width >= std::numeric_limits<int16_t>::max() ||
         height >= std::numeric_limits<int16_t>::max() )
     {
         throw std::invalid_argument("Either width or height exceed the maximum size allowed (32768) ");
     }
     
-    if (bytes_per_line==0) bytes_per_line=width;
-
     _world_width  = width;
     _world_height = height;
-    _gridmap.resize(width*height);
-
-    for (size_t row=0; row<height; row++ )
-    {
-        size_t data_idx = row*bytes_per_line, grid_idx = row*width;
-        
-        for (size_t col=0; col<width; col++, data_idx++, grid_idx++ )
-        {
-            _gridmap[grid_idx].world = data[data_idx];
-        }
-    }
+    _world_data = data;
+    _bytes_per_line = bytes_per_line;
+    if (_bytes_per_line==0) _bytes_per_line=width;
+    _obstacle_threshold = color_threshold;
 }
 
 void PathFinder::setHeuristic(HeuristicFunction heuristic_)
@@ -100,11 +90,7 @@ void PathFinder::clean()
         _open_set.pop();
     }
 
-    for(Cell& cell: _gridmap)
-    {
-        cell.cost_G = std::numeric_limits< decltype(cell.cost_G)>::max();
-        cell.already_visited = false;
-    }
+    _gridmap.resize(_world_width*_world_height);
 }
 
 
@@ -193,6 +179,9 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 
 void PathFinder::exportPPM(const char *filename, CoordinateList* path)
 {
+    if (_world_data=nullptr)
+        return;
+    
     std::ofstream outfile(filename, std::ios_base::out | std::ios_base::binary);
 
     char header[100];
@@ -209,7 +198,9 @@ void PathFinder::exportPPM(const char *filename, CoordinateList* path)
     {
         for (uint32_t x=0; x<_world_width; x++)
         {
-            if( cell( Coord2D(x,y) ).world == OBSTACLE )
+            uint8_t world_value = _world_data[y*_bytes_per_line+x];
+            
+            if( world_value <= _obstacle_threshold )
             {
                 uint8_t color[] = {0,0,0};
                 std::memcpy( &image[ toIndex(x,y) ], color, 3 );

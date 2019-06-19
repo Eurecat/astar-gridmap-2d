@@ -81,26 +81,20 @@ public:
     /// Export the resulting solution in a visual way. Useful for debugging.
     void exportPPM(const char* filename, CoordinateList* path);
 
-    enum{
-        OBSTACLE = 0,
-        EMPTY    = 255
-    };
-
-    uint8_t _obstacle_threshold;
-
     struct Cell{
-        uint8_t  world;
         bool     already_visited;
         Coord2D  path_parent;
         float    cost_G;
+        
+        Cell(): already_visited(false), cost_G(std::numeric_limits< decltype(cost_G)>::max()) {}
     };
 
-    const Cell& cell(Coord2D coordinates_) const
+    const Cell& cell(const Coord2D& coordinates_) const
     {
         return _gridmap[coordinates_.y*_world_width + coordinates_.x];
     }
 
-    Cell& cell(Coord2D coordinates_)
+    Cell& cell(const Coord2D& coordinates_)
     {
         return _gridmap[coordinates_.y*_world_width + coordinates_.x];
     }
@@ -108,15 +102,18 @@ public:
 private:
 
     HeuristicFunction _heuristic;
-    uint32_t _world_width;
-    uint32_t _world_height;
-
+    uint8_t _obstacle_threshold=0;
+    uint32_t _world_width=0;
+    uint32_t _world_height=0;
+    const uint8_t* _world_data=nullptr;
+    size_t _bytes_per_line=0;
+    
     std::array<Coord2D,8>  _directions;
     std::array<uint32_t,8> _direction_cost;
 
     std::priority_queue<ScoreCoordPair, std::vector<ScoreCoordPair>, CompareScore> _open_set;
 
-    bool detectCollision(Coord2D coordinates);
+    bool detectCollision(const Coord2D& coordinates);
 
     std::vector<Cell> _gridmap;
 
@@ -126,34 +123,36 @@ private:
 class Heuristic
 {
 public:
-    static uint32_t manhattan(Coord2D source_, Coord2D target_);
-    static uint32_t euclidean(Coord2D source_, Coord2D target_);
-    static uint32_t octagonal(Coord2D source_, Coord2D target_);
+    static uint32_t manhattan(const Coord2D& source_, const Coord2D& target_);
+    static uint32_t euclidean(const Coord2D& source_, const Coord2D& target_);
+    static uint32_t octagonal(const Coord2D& source_, const Coord2D& target_);
 };
 
 
 
-inline bool PathFinder::detectCollision(Coord2D coordinates)
+inline bool PathFinder::detectCollision(const Coord2D& coordinates)
 {
-    return (coordinates.x < 0 || coordinates.x >= _world_width ||
-            coordinates.y < 0 || coordinates.y >= _world_height ||
-            cell(coordinates).world <= _obstacle_threshold );
+    if (coordinates.x < 0 || coordinates.x >= _world_width ||
+        coordinates.y < 0 || coordinates.y >= _world_height ) return true;
+            
+    uint8_t world_value = _world_data[coordinates.y*_bytes_per_line+coordinates.x];
+    return world_value <= _obstacle_threshold;
 }
 
 
-inline uint32_t Heuristic::manhattan(Coord2D source, Coord2D target)
+inline uint32_t Heuristic::manhattan(const Coord2D& source, const Coord2D& target)
 {
     auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
     return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
 }
 
-inline uint32_t Heuristic::euclidean(Coord2D source, Coord2D target)
+inline uint32_t Heuristic::euclidean(const Coord2D& source, const Coord2D& target)
 {
     auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
     return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
 }
 
-inline uint32_t Heuristic::octagonal(Coord2D source, Coord2D target)
+inline uint32_t Heuristic::octagonal(const Coord2D& source, const Coord2D& target)
 {
     auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
     return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
