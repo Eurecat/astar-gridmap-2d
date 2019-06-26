@@ -179,7 +179,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 
 void PathFinder::exportPPM(const char *filename, CoordinateList* path)
 {
-    if (_world_data=nullptr)
+    if (_world_data==nullptr)
         return;
     
     std::ofstream outfile(filename, std::ios_base::out | std::ios_base::binary);
