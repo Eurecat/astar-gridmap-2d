@@ -16,12 +16,12 @@ either express or implied. See the License for the specific language governing p
 #define _ASTAR2_Taffete_eurecat_
 
 #include <array>
-#include <functional>
 #include <set>
 #include <map>
 #include <unordered_map>
 #include <queue>
 #include <algorithm>
+#include <functional>
 
 namespace AStar
 {
@@ -59,6 +59,14 @@ public:
     PathFinder();
     ~PathFinder();
 
+    enum Heuristic
+    {
+      MANHATTAN,
+      EUCLIDEAN,
+      OCTOGONAL,
+      CUSTOM
+    };
+
     ///
     /**
      * @brief setWorldData to be called at least once before findPath
@@ -71,8 +79,9 @@ public:
      */
     void setWorldData(unsigned width, unsigned height, const uint8_t *data, size_t bytes_per_line=0, uint8_t color_threshold = 20);
 
-    /// Default value is Heuristic::manhattan
-    void setHeuristic(HeuristicFunction heuristic_);
+    void setHeuristic(Heuristic heuristic);
+
+    void setCustomHeuristic(HeuristicFunction heuristic_);
 
     /// Function that performs the actual A* computation.
     CoordinateList findPath(Coord2D source_, Coord2D target_);
@@ -101,7 +110,8 @@ public:
 
 private:
 
-    HeuristicFunction _heuristic;
+    Heuristic _heuristic_type;
+    HeuristicFunction _heuristic_func;
     uint8_t _obstacle_threshold=0;
     uint32_t _world_width=0;
     uint32_t _world_height=0;
@@ -120,7 +130,7 @@ private:
     void  clear();
 };
 
-class Heuristic
+class HeuristicImpl
 {
 public:
     static uint32_t manhattan(const Coord2D& source_, const Coord2D& target_);
@@ -135,24 +145,24 @@ inline bool PathFinder::detectCollision(const Coord2D& coordinates)
     if (coordinates.x < 0 || coordinates.x >= _world_width ||
         coordinates.y < 0 || coordinates.y >= _world_height ) return true;
             
-    uint8_t world_value = _world_data[coordinates.y*_bytes_per_line+coordinates.x];
+    uint8_t world_value = _world_data[coordinates.y*_bytes_per_line + coordinates.x];
     return world_value <= _obstacle_threshold;
 }
 
 
-inline uint32_t Heuristic::manhattan(const Coord2D& source, const Coord2D& target)
+inline uint32_t HeuristicImpl::manhattan(const Coord2D& source, const Coord2D& target)
 {
     auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
     return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
 }
 
-inline uint32_t Heuristic::euclidean(const Coord2D& source, const Coord2D& target)
+inline uint32_t HeuristicImpl::euclidean(const Coord2D& source, const Coord2D& target)
 {
     auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
     return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
 }
 
-inline uint32_t Heuristic::octagonal(const Coord2D& source, const Coord2D& target)
+inline uint32_t HeuristicImpl::octagonal(const Coord2D& source, const Coord2D& target)
 {
     auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
     return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);

@@ -42,7 +42,8 @@ PathFinder::PathFinder():
 {
 
     _obstacle_threshold = 0;
-    setHeuristic(&Heuristic::manhattan);
+    setHeuristic(MANHATTAN);
+
     _directions = {{
         { -1, -1 },  { 0, -1 }, { 1, -1 }, //0 - 2
         { -1,  0 },             { 1,  0 }, //3 - 4
@@ -77,9 +78,19 @@ void PathFinder::setWorldData(unsigned width, unsigned height, const uint8_t *da
     _obstacle_threshold = color_threshold;
 }
 
-void PathFinder::setHeuristic(HeuristicFunction heuristic_)
+void PathFinder::setCustomHeuristic(HeuristicFunction heuristic)
 {
-    _heuristic = std::bind(heuristic_, _1, _2);
+    _heuristic_func = heuristic;
+    _heuristic_type = CUSTOM;
+}
+
+void PathFinder::setHeuristic(Heuristic heuristic)
+{
+  if( heuristic == CUSTOM && !_heuristic_func)
+  {
+      throw std::runtime_error("Use method setCustomHeuristic instead" );
+  }
+  _heuristic_type = heuristic;
 }
 
 
@@ -95,7 +106,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 {
     clear();
 
-    auto toIndex = [this](Coord2D pos) -> int
+    auto toIndex = [this](const Coord2D& pos) -> int
     { return static_cast<int>(_world_width*pos.y + pos.x); };
 
     const int startIndex = toIndex(startPos);
@@ -109,6 +120,12 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
     }
 
     bool solution_found = false;
+
+    int offset_grid[8];
+    for (int i = 0; i < 8; ++i)
+    {
+      offset_grid[i] = toIndex(_directions[i]);
+    }
 
     while (! _open_set.empty() )
     {
@@ -131,7 +148,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
                 continue;
             }
 
-            const size_t newIndex = toIndex(newCoordinates);
+            const size_t newIndex = currentIndex + offset_grid[i];
             Cell& newCell = _gridmap[newIndex];
 
             if ( newCell.already_visited ) {
@@ -146,7 +163,21 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 
             if( new_cost < newCell.cost_G)
             {
-                auto H = _heuristic( newCoordinates, goalPos );
+                uint32_t H = 0;
+                switch (_heuristic_type) {
+                  case MANHATTAN:
+                    H = HeuristicImpl::manhattan(newCoordinates, goalPos);
+                    break;
+                  case EUCLIDEAN:
+                    H = HeuristicImpl::euclidean(newCoordinates, goalPos);
+                    break;
+                  case OCTOGONAL:
+                    H = HeuristicImpl::octagonal(newCoordinates, goalPos);
+                    break;
+                  default:
+                    H = _heuristic_func(newCoordinates, goalPos);
+                    break;
+                }
                 _open_set.push( { new_cost + H, newCoordinates } );
                 newCell.cost_G = new_cost;
                 newCell.path_parent = currentCoord;
