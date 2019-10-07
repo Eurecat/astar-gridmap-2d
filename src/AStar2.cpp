@@ -36,6 +36,11 @@ Coord2D operator + (const Coord2D& left_, const Coord2D& right_)
     return{ left_.x + right_.x, left_.y + right_.y };
 }
 
+Coord2D operator - (const Coord2D& left_, const Coord2D& right_)
+{
+  return{ left_.x - right_.x, left_.y - right_.y };
+}
+
 
 PathFinder::PathFinder()
 {
@@ -54,6 +59,13 @@ PathFinder::PathFinder()
         10,     10,
         14, 10, 14
     }};
+
+    _direction_next = {
+        {0,1,3}, {0,1,2}, {1,2,4},
+        {0,3,5},          {2,4,7},
+        {3,5,6}, {5,6,7}, {4,6,7},
+        {0,1,2,3,4,5,6,7}
+    };
 }
 
 PathFinder::~PathFinder()
@@ -110,7 +122,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 
     const int startIndex = toIndex(startPos);
 
-    _open_set.push( {0, startPos } );
+    _open_set.push( {0, startPos, 8 } );
     _gridmap[startIndex].cost_G = 0.0;
  
     if( detectCollision( startPos ) )
@@ -129,6 +141,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
     while (! _open_set.empty() )
     {
         Coord2D currentCoord = _open_set.top().coord;
+        uint8_t prev = _open_set.top().prev_dir;
         _open_set.pop();
 
         if (currentCoord == goalPos) {
@@ -139,7 +152,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
         Cell& currentCell = _gridmap[ currentIndex ];
         currentCell.already_visited = true;
 
-        for (int i = 0; i < 8; ++i)
+        for (int i: _direction_next[prev])
         {
             const Coord2D newCoordinates = currentCoord + _directions[i];
 
@@ -177,9 +190,9 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
                     H = _heuristic_func(newCoordinates, goalPos);
                     break;
                 }
-                _open_set.push( { new_cost + H, newCoordinates } );
+                _open_set.push( { new_cost + H, newCoordinates, i} );
                 newCell.cost_G = new_cost;
-                newCell.path_parent = currentCoord;
+                newCell.path_parent = i;
             }
         }
     }
@@ -191,7 +204,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
         while (coord != startPos)
         {
             path.push_back( coord );
-            coord = cell(coord).path_parent;
+            coord = coord - _directions[cell(coord).path_parent];
         }
         path.push_back(startPos);
     }

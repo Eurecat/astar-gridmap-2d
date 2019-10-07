@@ -39,17 +39,15 @@ struct Coord2D
 using HeuristicFunction = std::function<uint32_t(Coord2D, Coord2D)>;
 using CoordinateList = std::vector<Coord2D>;
 
-
-//typedef std::pair<uint32_t,Coord2D> ScoreCoordPair;
-
-struct ScoreCoordPair
+struct OpenNode
 {
     uint32_t score;
     Coord2D  coord;
+    uint8_t prev_dir; // previous direction
 };
 
 // Note: we want the priority_queue to be ordered from smaller to larger
-inline bool operator<(const ScoreCoordPair& a, const ScoreCoordPair& b)
+inline bool operator<(const OpenNode& a, const OpenNode& b)
 {
   return a.score > b.score;
 }
@@ -94,7 +92,7 @@ public:
 
     struct Cell{
         bool     already_visited;
-        Coord2D  path_parent;
+        uint8_t  path_parent;
         float    cost_G;
         
         Cell(): already_visited(false), cost_G(std::numeric_limits< decltype(cost_G)>::max()) {}
@@ -122,8 +120,9 @@ private:
     
     std::array<Coord2D,8>  _directions;
     std::array<uint32_t,8> _direction_cost;
+    std::vector<std::vector<uint8_t>> _direction_next;
 
-    std::priority_queue<ScoreCoordPair, std::vector<ScoreCoordPair>> _open_set;
+    std::priority_queue<OpenNode, std::vector<OpenNode>> _open_set;
 
     bool detectCollision(const Coord2D& coordinates);
 
