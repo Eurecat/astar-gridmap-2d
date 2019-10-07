@@ -117,7 +117,7 @@ private:
 
     std::vector<Cell> _gridmap;
 
-    void  clean();
+    void  clear();
 };
 
 class Heuristic

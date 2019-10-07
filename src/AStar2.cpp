@@ -83,20 +83,17 @@ void PathFinder::setHeuristic(HeuristicFunction heuristic_)
 }
 
 
-void PathFinder::clean()
+void PathFinder::clear()
 {
-    while( !_open_set.empty() )
-    {
-        _open_set.pop();
-    }
-
+    _open_set = decltype(_open_set)(); // priority_queue does not have "clear"
     _gridmap.resize(_world_width*_world_height);
+    std::fill(_gridmap.begin(), _gridmap.end(), Cell());
 }
 
 
 CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 {
-    clean();
+    clear();
 
     auto toIndex = [this](Coord2D pos) -> int
     { return static_cast<int>(_world_width*pos.y + pos.x); };
