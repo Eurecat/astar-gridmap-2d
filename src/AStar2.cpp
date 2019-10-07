@@ -37,8 +37,7 @@ Coord2D operator + (const Coord2D& left_, const Coord2D& right_)
 }
 
 
-PathFinder::PathFinder():
-    _open_set( CompareScore() )
+PathFinder::PathFinder()
 {
 
     _obstacle_threshold = 0;
@@ -129,7 +128,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 
     while (! _open_set.empty() )
     {
-        Coord2D currentCoord = _open_set.top().second;
+        Coord2D currentCoord = _open_set.top().coord;
         _open_set.pop();
 
         if (currentCoord == goalPos) {

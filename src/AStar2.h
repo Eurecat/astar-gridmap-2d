@@ -40,17 +40,19 @@ using HeuristicFunction = std::function<uint32_t(Coord2D, Coord2D)>;
 using CoordinateList = std::vector<Coord2D>;
 
 
-typedef std::pair<uint32_t,Coord2D> ScoreCoordPair;
+//typedef std::pair<uint32_t,Coord2D> ScoreCoordPair;
 
-struct CompareScore
+struct ScoreCoordPair
 {
-    //Note: we want the priority_queue to be ordered from smaller to larger
-    bool operator() (const ScoreCoordPair& a,
-                     const ScoreCoordPair& b)
-    {
-        return a.first > b.first;
-    }
+    uint32_t score;
+    Coord2D  coord;
 };
+
+// Note: we want the priority_queue to be ordered from smaller to larger
+inline bool operator<(const ScoreCoordPair& a, const ScoreCoordPair& b)
+{
+  return a.score > b.score;
+}
 
 class PathFinder
 {
@@ -121,7 +123,7 @@ private:
     std::array<Coord2D,8>  _directions;
     std::array<uint32_t,8> _direction_cost;
 
-    std::priority_queue<ScoreCoordPair, std::vector<ScoreCoordPair>, CompareScore> _open_set;
+    std::priority_queue<ScoreCoordPair, std::vector<ScoreCoordPair>> _open_set;
 
     bool detectCollision(const Coord2D& coordinates);
 
