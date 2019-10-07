@@ -1,24 +1,29 @@
 # A* for 2D grids
 
 This is an implementation of the A* path planning algorithm, specifically tailored for
-2D rectangular grids.
+2D grids.
 
 It is inspired by other two open source implementations:
 
 - [hjweide/a-star](https://github.com/hjweide/a-star)
-- [daancode/a-star](https://github.com/daancode/a-star)
 
-Nevertheless, this implementation is 20% faster than the former and few orders of magnitude (3+)
-faster than the latter.
+Nevertheless, this implementation is 20% faster.
 
-You might also want to take a look to [astar-algorithm-cpp](https://github.com/justinhj/astar-algorithm-cpp),
-but this implementation is more generic and it is not specifically optimized for 2D gridmaps.
+You might want to take a look to [astar-algorithm-cpp](https://github.com/justinhj/astar-algorithm-cpp),
+but that implementation is more generic and it is not specifically optimized for 2D gridmaps.
 
-To achieve this speed, the library uses a fairly large amount of RAM to perform many
+To improve speed, the library uses a fairly large amount of RAM to perform many
 operations in __O(1)__. The number of memory allocations is reduced to the very minimum.
 
-It requires __at least__ 10 bytes for each cell in the grid, in other words,
-more than 10 Mb of memory for a 1000x1000 gridmap.
+It requires __at least__ 8 bytes for each cell in the grid, in other words,
+more than 8 Mb of memory for a 1000x1000 gridmap.
+
+# How fast is it?
+
+Even if a fair amount of work was spent (mostly for fun) to optimize this software, it is still an A*
+algorithm, that will be outperformed by other, more advanced, algorithms.
+
+If you are looking for state-of-the-art path finders, you might be interested to www.movingai.com
 
 ## Usage 
 
@@ -58,7 +63,7 @@ The pink pixels represent the cells of the grid visited by the algorithm.
 
 # License
 
-Copyright 2018 Eurecat
+Copyright 2018-2019 Eurecat
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file 
 except in compliance with the License. You may obtain a copy of the License at

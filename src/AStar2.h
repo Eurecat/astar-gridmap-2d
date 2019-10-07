@@ -43,7 +43,7 @@ struct OpenNode
 {
     uint32_t score;
     Coord2D  coord;
-    uint8_t prev_dir; // previous direction
+    uint8_t  prev_dir; // previous direction
 };
 
 // Note: we want the priority_queue to be ordered from smaller to larger
@@ -91,9 +91,9 @@ public:
     void exportPPM(const char* filename, CoordinateList* path);
 
     struct Cell{
-        bool     already_visited;
+        bool  already_visited;
         uint8_t  path_parent;
-        float    cost_G;
+        uint32_t cost_G;
         
         Cell(): already_visited(false), cost_G(std::numeric_limits< decltype(cost_G)>::max()) {}
     };
@@ -119,8 +119,8 @@ private:
     size_t _bytes_per_line=0;
     
     std::array<Coord2D,8>  _directions;
-    std::array<uint32_t,8> _direction_cost;
-    std::vector<std::vector<uint8_t>> _direction_next;
+    std::array<int,8>      _direction_cost;
+    std::vector<std::vector<int>> _direction_next;
 
     std::priority_queue<OpenNode, std::vector<OpenNode>> _open_set;
 
@@ -146,8 +146,7 @@ inline bool PathFinder::detectCollision(const Coord2D& coordinates)
     if (coordinates.x < 0 || coordinates.x >= _world_width ||
         coordinates.y < 0 || coordinates.y >= _world_height ) return true;
             
-    uint8_t world_value = _world_data[coordinates.y*_bytes_per_line + coordinates.x];
-    return world_value <= _obstacle_threshold;
+    return _world_data[coordinates.y*_bytes_per_line + coordinates.x] <= _obstacle_threshold;
 }
 
 

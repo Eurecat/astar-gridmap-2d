@@ -123,7 +123,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
     const int startIndex = toIndex(startPos);
 
     _open_set.push( {0, startPos, 8 } );
-    _gridmap[startIndex].cost_G = 0.0;
+    _gridmap[startIndex].cost_G = 0;
  
     if( detectCollision( startPos ) )
     {
@@ -171,11 +171,11 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
             //float factor = 1.0f + static_cast<float>(EMPTY - newCell.world) / 50.0f;
             //float new_cost = currentCell.cost_G + (_direction_cost[i] * factor);
 
-            const float new_cost = currentCell.cost_G + _direction_cost[i];
+            const uint32_t new_cost = currentCell.cost_G + _direction_cost[i];
 
             if( new_cost < newCell.cost_G)
             {
-                uint32_t H = 0;
+                int H = 0;
                 switch (_heuristic_type) {
                   case MANHATTAN:
                     H = HeuristicImpl::manhattan(newCoordinates, goalPos);
@@ -190,7 +190,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
                     H = _heuristic_func(newCoordinates, goalPos);
                     break;
                 }
-                _open_set.push( { new_cost + H, newCoordinates, i} );
+                _open_set.push( { new_cost + H, newCoordinates, static_cast<uint8_t>(i)} );
                 newCell.cost_G = new_cost;
                 newCell.path_parent = i;
             }
