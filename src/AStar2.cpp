@@ -26,27 +26,11 @@ using namespace std::placeholders;
 
 namespace AStar{
 
-bool Coord2D::operator == (const Coord2D& other) const
-{
-    return (x == other.x && y == other.y);
-}
-
-Coord2D operator + (const Coord2D& left_, const Coord2D& right_)
-{
-    return{ left_.x + right_.x, left_.y + right_.y };
-}
-
-Coord2D operator - (const Coord2D& left_, const Coord2D& right_)
-{
-  return{ left_.x - right_.x, left_.y - right_.y };
-}
-
-
 PathFinder::PathFinder()
 {
 
     _obstacle_threshold = 0;
-    setHeuristic(MANHATTAN);
+    setHeuristic(OCTOGONAL);
 
     _directions = {{
         { -1, -1 },  { 0, -1 }, { 1, -1 }, //0 - 2
@@ -268,6 +252,33 @@ void PathFinder::exportPPM(const char *filename, CoordinateList* path)
 
     outfile.write( reinterpret_cast<char*>(image.data()), image.size() );
     outfile.close();
+}
+
+inline bool PathFinder::detectCollision(const Coord2D& coordinates)
+{
+  if (coordinates.x < 0 || coordinates.x >= _world_width ||
+      coordinates.y < 0 || coordinates.y >= _world_height ) return true;
+
+  return _world_data[coordinates.y*_bytes_per_line + coordinates.x] <= _obstacle_threshold;
+}
+
+
+inline uint32_t HeuristicImpl::manhattan(const Coord2D& source, const Coord2D& target)
+{
+  auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
+  return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
+}
+
+inline uint32_t HeuristicImpl::euclidean(const Coord2D& source, const Coord2D& target)
+{
+  auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
+  return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
+}
+
+inline uint32_t HeuristicImpl::octagonal(const Coord2D& source, const Coord2D& target)
+{
+  auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
+  return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
 }
 
 }

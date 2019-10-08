@@ -31,8 +31,22 @@ struct Coord2D
     int16_t x, y;
     Coord2D(): x(-1), y(-1) {}
     Coord2D(int x_, int y_): x(x_), y(y_) {}
-    bool operator == (const Coord2D& other) const;
-    bool operator != (const Coord2D& other) const { return !(*this == other); }
+
+    bool operator != (const Coord2D& other) const {
+      return !(*this == other);
+    }
+
+    bool operator == (const Coord2D& other) const {
+      return (x == other.x && y == other.y);
+    }
+
+    Coord2D operator + ( const Coord2D& other) const {
+      return{ x + other.x, y + other.y };
+    }
+
+    Coord2D operator - (const Coord2D& other) const {
+      return{ x - other.x, y - other.y };
+    }
 };
 
 
@@ -61,10 +75,10 @@ public:
 
     enum Heuristic
     {
-      MANHATTAN,
-      EUCLIDEAN,
-      OCTOGONAL,
-      CUSTOM
+      MANHATTAN, // common heursistic
+      EUCLIDEAN, // expensive
+      OCTOGONAL, // default
+      CUSTOM     // automatically set by setCustomHeuristic()
     };
 
     ///
@@ -138,35 +152,6 @@ public:
     static uint32_t euclidean(const Coord2D& source_, const Coord2D& target_);
     static uint32_t octagonal(const Coord2D& source_, const Coord2D& target_);
 };
-
-
-
-inline bool PathFinder::detectCollision(const Coord2D& coordinates)
-{
-    if (coordinates.x < 0 || coordinates.x >= _world_width ||
-        coordinates.y < 0 || coordinates.y >= _world_height ) return true;
-            
-    return _world_data[coordinates.y*_bytes_per_line + coordinates.x] <= _obstacle_threshold;
-}
-
-
-inline uint32_t HeuristicImpl::manhattan(const Coord2D& source, const Coord2D& target)
-{
-    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-    return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
-}
-
-inline uint32_t HeuristicImpl::euclidean(const Coord2D& source, const Coord2D& target)
-{
-    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-    return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
-}
-
-inline uint32_t HeuristicImpl::octagonal(const Coord2D& source, const Coord2D& target)
-{
-    auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
-    return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
-}
 
 
 }
