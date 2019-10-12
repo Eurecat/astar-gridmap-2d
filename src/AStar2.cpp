@@ -87,12 +87,18 @@ void PathFinder::clear()
 {
     _open_set = decltype(_open_set)(); // priority_queue does not have "clear"
     _gridmap.resize(_world_width*_world_height);
-    std::fill(_gridmap.begin(), _gridmap.end(), Cell());
+    for (uint32_t index : _visited_cells ) _gridmap[index]=Cell();
+    _visited_cells.clear();
 }
 
 
 CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 {
+    if( detectCollision( startPos ) )
+    {
+       return {};
+    }
+
     clear();
 
     auto toIndex = [this](Coord2D pos) -> int
@@ -102,12 +108,8 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 
     _open_set.push( {0, startPos } );
     _gridmap[startIndex].cost_G = 0.0;
- 
-    if( detectCollision( startPos ) )
-    {
-       return {};
-    }
-
+    _visited_cells.push_back(startIndex);
+    
     bool solution_found = false;
 
     while (! _open_set.empty() )
@@ -150,6 +152,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
                 _open_set.push( { new_cost + H, newCoordinates } );
                 newCell.cost_G = new_cost;
                 newCell.path_parent = currentCoord;
+                _visited_cells.push_back(newIndex);
             }
         }
     }
