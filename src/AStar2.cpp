@@ -26,23 +26,12 @@ using namespace std::placeholders;
 
 namespace AStar{
 
-bool Coord2D::operator == (const Coord2D& other) const
-{
-    return (x == other.x && y == other.y);
-}
-
-Coord2D operator + (const Coord2D& left_, const Coord2D& right_)
-{
-    return{ left_.x + right_.x, left_.y + right_.y };
-}
-
-
-PathFinder::PathFinder():
-    _open_set( CompareScore() )
+PathFinder::PathFinder()
 {
 
     _obstacle_threshold = 0;
-    setHeuristic(&Heuristic::manhattan);
+    setHeuristic(OCTOGONAL);
+
     _directions = {{
         { -1, -1 },  { 0, -1 }, { 1, -1 }, //0 - 2
         { -1,  0 },             { 1,  0 }, //3 - 4
@@ -54,6 +43,13 @@ PathFinder::PathFinder():
         10,     10,
         14, 10, 14
     }};
+
+    _direction_next = {
+        {0,1,3}, {0,1,2}, {1,2,4},
+        {0,3,5},          {2,4,7},
+        {3,5,6}, {5,6,7}, {4,6,7},
+        {0,1,2,3,4,5,6,7}
+    };
 }
 
 PathFinder::~PathFinder()
@@ -77,9 +73,19 @@ void PathFinder::setWorldData(unsigned width, unsigned height, const uint8_t *da
     _obstacle_threshold = color_threshold;
 }
 
-void PathFinder::setHeuristic(HeuristicFunction heuristic_)
+void PathFinder::setCustomHeuristic(HeuristicFunction heuristic)
 {
-    _heuristic = std::bind(heuristic_, _1, _2);
+    _heuristic_func = heuristic;
+    _heuristic_type = CUSTOM;
+}
+
+void PathFinder::setHeuristic(Heuristic heuristic)
+{
+  if( heuristic == CUSTOM && !_heuristic_func)
+  {
+      throw std::runtime_error("Use method setCustomHeuristic instead" );
+  }
+  _heuristic_type = heuristic;
 }
 
 
@@ -101,20 +107,27 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 
     clear();
 
-    auto toIndex = [this](Coord2D pos) -> int
+    auto toIndex = [this](const Coord2D& pos) -> int
     { return static_cast<int>(_world_width*pos.y + pos.x); };
 
     const int startIndex = toIndex(startPos);
 
-    _open_set.push( {0, startPos } );
-    _gridmap[startIndex].cost_G = 0.0;
+    _open_set.push( {0, startPos, 8 } );
+    _gridmap[startIndex].cost_G = 0;
     _visited_cells.push_back(startIndex);
     
     bool solution_found = false;
 
+    int offset_grid[8];
+    for (int i = 0; i < 8; ++i)
+    {
+      offset_grid[i] = toIndex(_directions[i]);
+    }
+
     while (! _open_set.empty() )
     {
-        Coord2D currentCoord = _open_set.top().second;
+        Coord2D currentCoord = _open_set.top().coord;
+        uint8_t prev = _open_set.top().prev_dir;
         _open_set.pop();
 
         if (currentCoord == goalPos) {
@@ -125,7 +138,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
         Cell& currentCell = _gridmap[ currentIndex ];
         currentCell.already_visited = true;
 
-        for (int i = 0; i < 8; ++i)
+        for (int i: _direction_next[prev])
         {
             const Coord2D newCoordinates = currentCoord + _directions[i];
 
@@ -133,7 +146,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
                 continue;
             }
 
-            const size_t newIndex = toIndex(newCoordinates);
+            const size_t newIndex = currentIndex + offset_grid[i];
             Cell& newCell = _gridmap[newIndex];
 
             if ( newCell.already_visited ) {
@@ -144,14 +157,28 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
             //float factor = 1.0f + static_cast<float>(EMPTY - newCell.world) / 50.0f;
             //float new_cost = currentCell.cost_G + (_direction_cost[i] * factor);
 
-            const float new_cost = currentCell.cost_G + _direction_cost[i];
+            const uint32_t new_cost = currentCell.cost_G + _direction_cost[i];
 
             if( new_cost < newCell.cost_G)
             {
-                auto H = _heuristic( newCoordinates, goalPos );
-                _open_set.push( { new_cost + H, newCoordinates } );
+                int H = 0;
+                switch (_heuristic_type) {
+                  case MANHATTAN:
+                    H = HeuristicImpl::manhattan(newCoordinates, goalPos);
+                    break;
+                  case EUCLIDEAN:
+                    H = HeuristicImpl::euclidean(newCoordinates, goalPos);
+                    break;
+                  case OCTOGONAL:
+                    H = HeuristicImpl::octagonal(newCoordinates, goalPos);
+                    break;
+                  default:
+                    H = _heuristic_func(newCoordinates, goalPos);
+                    break;
+                }
+                _open_set.push( { new_cost + H, newCoordinates, static_cast<uint8_t>(i)} );
                 newCell.cost_G = new_cost;
-                newCell.path_parent = currentCoord;
+                newCell.path_parent = i;
                 _visited_cells.push_back(newIndex);
             }
         }
@@ -164,7 +191,7 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
         while (coord != startPos)
         {
             path.push_back( coord );
-            coord = cell(coord).path_parent;
+            coord = coord - _directions[cell(coord).path_parent];
         }
         path.push_back(startPos);
     }
@@ -228,6 +255,33 @@ void PathFinder::exportPPM(const char *filename, CoordinateList* path)
 
     outfile.write( reinterpret_cast<char*>(image.data()), image.size() );
     outfile.close();
+}
+
+inline bool PathFinder::detectCollision(const Coord2D& coordinates)
+{
+  if (coordinates.x < 0 || coordinates.x >= _world_width ||
+      coordinates.y < 0 || coordinates.y >= _world_height ) return true;
+
+  return _world_data[coordinates.y*_bytes_per_line + coordinates.x] <= _obstacle_threshold;
+}
+
+
+inline uint32_t HeuristicImpl::manhattan(const Coord2D& source, const Coord2D& target)
+{
+  auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
+  return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
+}
+
+inline uint32_t HeuristicImpl::euclidean(const Coord2D& source, const Coord2D& target)
+{
+  auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
+  return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
+}
+
+inline uint32_t HeuristicImpl::octagonal(const Coord2D& source, const Coord2D& target)
+{
+  auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
+  return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
 }
 
 }

@@ -16,12 +16,12 @@ either express or implied. See the License for the specific language governing p
 #define _ASTAR2_Taffete_eurecat_
 
 #include <array>
-#include <functional>
 #include <set>
 #include <map>
 #include <unordered_map>
 #include <queue>
 #include <algorithm>
+#include <functional>
 
 namespace AStar
 {
@@ -31,26 +31,40 @@ struct Coord2D
     int16_t x, y;
     Coord2D(): x(-1), y(-1) {}
     Coord2D(int x_, int y_): x(x_), y(y_) {}
-    bool operator == (const Coord2D& other) const;
-    bool operator != (const Coord2D& other) const { return !(*this == other); }
+
+    bool operator != (const Coord2D& other) const {
+      return !(*this == other);
+    }
+
+    bool operator == (const Coord2D& other) const {
+      return (x == other.x && y == other.y);
+    }
+
+    Coord2D operator + ( const Coord2D& other) const {
+      return{ x + other.x, y + other.y };
+    }
+
+    Coord2D operator - (const Coord2D& other) const {
+      return{ x - other.x, y - other.y };
+    }
 };
 
 
 using HeuristicFunction = std::function<uint32_t(Coord2D, Coord2D)>;
 using CoordinateList = std::vector<Coord2D>;
 
-
-typedef std::pair<uint32_t,Coord2D> ScoreCoordPair;
-
-struct CompareScore
+struct OpenNode
 {
-    //Note: we want the priority_queue to be ordered from smaller to larger
-    bool operator() (const ScoreCoordPair& a,
-                     const ScoreCoordPair& b)
-    {
-        return a.first > b.first;
-    }
+    uint32_t score;
+    Coord2D  coord;
+    uint8_t  prev_dir; // previous direction
 };
+
+// Note: we want the priority_queue to be ordered from smaller to larger
+inline bool operator<(const OpenNode& a, const OpenNode& b)
+{
+  return a.score > b.score;
+}
 
 class PathFinder
 {
@@ -58,6 +72,14 @@ class PathFinder
 public:
     PathFinder();
     ~PathFinder();
+
+    enum Heuristic
+    {
+      MANHATTAN, // common heursistic
+      EUCLIDEAN, // expensive
+      OCTOGONAL, // default
+      CUSTOM     // automatically set by setCustomHeuristic()
+    };
 
     ///
     /**
@@ -71,8 +93,9 @@ public:
      */
     void setWorldData(unsigned width, unsigned height, const uint8_t *data, size_t bytes_per_line=0, uint8_t color_threshold = 20);
 
-    /// Default value is Heuristic::manhattan
-    void setHeuristic(HeuristicFunction heuristic_);
+    void setHeuristic(Heuristic heuristic);
+
+    void setCustomHeuristic(HeuristicFunction heuristic_);
 
     /// Function that performs the actual A* computation.
     CoordinateList findPath(Coord2D source_, Coord2D target_);
@@ -82,9 +105,9 @@ public:
     void exportPPM(const char* filename, CoordinateList* path);
 
     struct Cell{
-        bool     already_visited;
-        Coord2D  path_parent;
-        float    cost_G;
+        bool  already_visited;
+        uint8_t  path_parent;
+        uint32_t cost_G;
         
         Cell(): already_visited(false), cost_G(std::numeric_limits< decltype(cost_G)>::max()) {}
     };
@@ -101,7 +124,8 @@ public:
 
 private:
 
-    HeuristicFunction _heuristic;
+    Heuristic _heuristic_type;
+    HeuristicFunction _heuristic_func;
     uint8_t _obstacle_threshold=0;
     uint32_t _world_width=0;
     uint32_t _world_height=0;
@@ -109,9 +133,10 @@ private:
     size_t _bytes_per_line=0;
     
     std::array<Coord2D,8>  _directions;
-    std::array<uint32_t,8> _direction_cost;
+    std::array<int,8>      _direction_cost;
+    std::vector<std::vector<int>> _direction_next;
 
-    std::priority_queue<ScoreCoordPair, std::vector<ScoreCoordPair>, CompareScore> _open_set;
+    std::priority_queue<OpenNode, std::vector<OpenNode>> _open_set;
 
     bool detectCollision(const Coord2D& coordinates);
 
@@ -121,43 +146,13 @@ private:
     void  clear();
 };
 
-class Heuristic
+class HeuristicImpl
 {
 public:
     static uint32_t manhattan(const Coord2D& source_, const Coord2D& target_);
     static uint32_t euclidean(const Coord2D& source_, const Coord2D& target_);
     static uint32_t octagonal(const Coord2D& source_, const Coord2D& target_);
 };
-
-
-
-inline bool PathFinder::detectCollision(const Coord2D& coordinates)
-{
-    if (coordinates.x < 0 || coordinates.x >= _world_width ||
-        coordinates.y < 0 || coordinates.y >= _world_height ) return true;
-            
-    uint8_t world_value = _world_data[coordinates.y*_bytes_per_line+coordinates.x];
-    return world_value <= _obstacle_threshold;
-}
-
-
-inline uint32_t Heuristic::manhattan(const Coord2D& source, const Coord2D& target)
-{
-    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-    return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
-}
-
-inline uint32_t Heuristic::euclidean(const Coord2D& source, const Coord2D& target)
-{
-    auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-    return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
-}
-
-inline uint32_t Heuristic::octagonal(const Coord2D& source, const Coord2D& target)
-{
-    auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
-    return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
-}
 
 
 }

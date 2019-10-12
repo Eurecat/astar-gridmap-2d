@@ -70,7 +70,6 @@ BENCHMARK_MAIN();
 //    Image image;
 //    image.readFromPGM("./data/maze_large.pgm");
 //    generator.setWorldData( image.width(), image.height(), image.data() );
-//    generator.allow5by5(false);
 
 //    AStar::CoordinateList result;
 
@@ -79,7 +78,6 @@ BENCHMARK_MAIN();
 //        { image.width()-1, image.height() -3 } );
 
 //    generator.exportPPM("map_out_large.ppm", &result );
-
 //    return 0;
 //}
 
