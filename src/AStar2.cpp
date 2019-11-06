@@ -94,8 +94,7 @@ void PathFinder::clear()
 {
     _open_set = decltype(_open_set)(); // priority_queue does not have "clear"
     _gridmap.resize(_world_width*_world_height);
-    for (uint32_t index : _visited_cells ) _gridmap[index]=Cell();
-    _visited_cells.clear();
+    std::fill(_gridmap.begin(), _gridmap.end(), Cell());
 }
 
 
@@ -115,7 +114,6 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
 
     _open_set.push( {0, startPos, 8 } );
     _gridmap[startIndex].cost_G = 0;
-    _visited_cells.push_back(startIndex);
     
     bool solution_found = false;
 
@@ -180,7 +178,6 @@ CoordinateList PathFinder::findPath(Coord2D startPos, Coord2D goalPos)
                 _open_set.push( { new_cost + H, newCoordinates, static_cast<uint8_t>(i)} );
                 newCell.cost_G = new_cost;
                 newCell.path_parent = i;
-                _visited_cells.push_back(newIndex);
             }
         }
     }

@@ -141,7 +141,6 @@ private:
     bool detectCollision(const Coord2D& coordinates);
 
     std::vector<Cell> _gridmap;
-    std::vector<uint32_t> _visited_cells;
 
     void  clear();
 };
