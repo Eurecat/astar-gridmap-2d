@@ -21,6 +21,7 @@ either express or implied. See the License for the specific language governing p
 #include <fstream>
 #include <iostream>
 #include <string.h>
+#include <cmath> 
 
 using namespace std::placeholders;
 
@@ -269,18 +270,18 @@ inline bool PathFinder::detectCollision(const Coord2D& coordinates)
 inline uint32_t HeuristicImpl::manhattan(const Coord2D& source, const Coord2D& target)
 {
   auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-  return static_cast<uint32_t>(10 * ( abs(delta.x) + abs(delta.y)));
+  return static_cast<uint32_t>(10 * ( std::abs(delta.x) + std::abs(delta.y)));
 }
 
 inline uint32_t HeuristicImpl::euclidean(const Coord2D& source, const Coord2D& target)
 {
   auto delta = Coord2D( (source.x - target.x), (source.y - target.y) );
-  return static_cast<uint32_t>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
+  return static_cast<uint32_t>(10 * std::sqrt(std::pow(delta.x, 2) + std::pow(delta.y, 2)));
 }
 
 inline uint32_t HeuristicImpl::octagonal(const Coord2D& source, const Coord2D& target)
 {
-  auto delta = Coord2D( abs(source.x - target.x), abs(source.y - target.y) );
+  auto delta = Coord2D( std::abs(source.x - target.x), std::abs(source.y - target.y) );
   return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
 }
 
